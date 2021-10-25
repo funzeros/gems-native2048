@@ -1,0 +1,84 @@
+/* common */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: inherit;
+}
+html,
+body {
+  height: 100%;
+  background-color: var(--main-bg-color);
+}
+body {
+  box-sizing: border-box;
+}
+#app {
+  margin: auto;
+  height: 100%;
+  width: 750px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+:root {
+  --main-bg-color: #ffe;
+  --sub-bg-color: #bbada0;
+  --body-width: 100%;
+  --cell-default-bg: #cdc1b4;
+  --cell-grid-width: 0;
+  --cell-level-1: #eee4da;
+  --cell-color: #776e65;
+  --cell-width: 0;
+  --cell-gap: 0;
+}
+
+/* cell-grid */
+.cell-grid {
+  background-color: var(--sub-bg-color);
+  width: var(--cell-grid-width);
+  height: var(--cell-grid-width);
+  border-radius: 2%;
+  padding: var(--cell-gap);
+  position: relative;
+}
+.cell-grid::before {
+  content: "";
+  display: block;
+  width: var(--cell-width);
+  height: var(--cell-width);
+  border-radius: inherit;
+  background-color: var(--cell-default-bg);
+  box-shadow: calc(var(--cell-width) + var(--cell-gap)) 0 var(--cell-default-bg),
+    calc(var(--cell-width) * 2 + var(--cell-gap) * 2) 0 var(--cell-default-bg),
+    calc(var(--cell-width) * 3 + var(--cell-gap) * 3) 0 var(--cell-default-bg),
+    0 calc(var(--cell-width) + var(--cell-gap)) var(--cell-default-bg),
+    calc(var(--cell-width) + var(--cell-gap)) calc(var(--cell-width) + var(--cell-gap)) var(--cell-default-bg),
+    calc(var(--cell-width) * 2 + var(--cell-gap) * 2) calc(var(--cell-width) + var(--cell-gap)) var(--cell-default-bg),
+    calc(var(--cell-width) * 3 + var(--cell-gap) * 3) calc(var(--cell-width) + var(--cell-gap)) var(--cell-default-bg),
+    0 calc(var(--cell-width) * 2 + var(--cell-gap) * 2) var(--cell-default-bg),
+    calc(var(--cell-width) + var(--cell-gap)) calc(var(--cell-width) * 2 + var(--cell-gap) * 2) var(--cell-default-bg),
+    calc(var(--cell-width) * 2 + var(--cell-gap) * 2) calc(var(--cell-width) * 2 + var(--cell-gap) * 2)
+      var(--cell-default-bg),
+    calc(var(--cell-width) * 3 + var(--cell-gap) * 3) calc(var(--cell-width) * 2 + var(--cell-gap) * 2)
+      var(--cell-default-bg),
+    0 calc(var(--cell-width) * 3 + var(--cell-gap) * 3) var(--cell-default-bg),
+    calc(var(--cell-width) + var(--cell-gap)) calc(var(--cell-width) * 3 + var(--cell-gap) * 3) var(--cell-default-bg),
+    calc(var(--cell-width) * 2 + var(--cell-gap) * 2) calc(var(--cell-width) * 3 + var(--cell-gap) * 3)
+      var(--cell-default-bg),
+    calc(var(--cell-width) * 3 + var(--cell-gap) * 3) calc(var(--cell-width) * 3 + var(--cell-gap) * 3)
+      var(--cell-default-bg);
+}
+
+.cell-item {
+  width: var(--cell-width);
+  height: var(--cell-width);
+  position: absolute;
+  top: var(--cell-gap);
+  left: var(--cell-gap);
+  color: var(--cell-color);
+  border-radius: inherit;
+}
+.cell-item-1 {
+  background-color: var(--cell-level-1);
+}
