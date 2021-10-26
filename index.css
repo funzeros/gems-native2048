@@ -78,7 +78,17 @@ body {
   left: var(--cell-gap);
   color: var(--cell-color);
   border-radius: inherit;
+  transition: all 0.1s ease-in-out;
 }
-.cell-item-1 {
+.cell-item::before {
+  content: attr(data-value);
+  font-size: calc(var(--cell-width) / 3);
+  text-align: center;
+  width: 100%;
+  display: block;
+  font-weight: 900;
+  line-height: var(--cell-width);
+}
+.cell-item-0 {
   background-color: var(--cell-level-1);
 }

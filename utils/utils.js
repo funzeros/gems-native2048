@@ -9,9 +9,10 @@ const defaultOptions = {
  */
 export const genDom = (options) => {
   const finOptions = { ...defaultOptions, ...options };
-  const { tag, className } = finOptions;
+  const { tag, className, dataValue } = finOptions;
   const oDom = document.createElement(tag);
   className.length && oDom.classList.add(...className);
+  dataValue && (oDom.dataset.value = dataValue);
   return oDom;
 };
 
@@ -29,4 +30,11 @@ export const getDom = (selector) => {
  */
 export const random = (min, max) => {
   return Math.round(Math.random() * max + min);
+};
+
+/**
+ * 数组随机
+ */
+export const randomArr = (arr) => {
+  return arr[Math.floor(Math.random() * arr.length)];
 };
