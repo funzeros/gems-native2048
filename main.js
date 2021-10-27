@@ -38,6 +38,12 @@ class MainSence {
     if (document.body.clientWidth < 800) {
       this.options.gridWidth = 350;
       this.options.gap = 10;
+    } else if (document.body.clientHeight < 937) {
+      const scale =
+        Math.floor(((document.body.clientHeight - 200) / (937 - 200)) * 100) /
+        100;
+      this.options.gridWidth = Math.floor(scale * this.options.gridWidth);
+      this.options.gap = Math.floor(scale * this.options.gap);
     }
     document.documentElement.style.setProperty(
       "--cell-gap",
