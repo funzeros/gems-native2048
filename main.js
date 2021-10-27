@@ -25,11 +25,20 @@ class MainSence {
   timer;
   flag = false;
   hasMove = false;
+  score = 0;
+  hasTouch = false;
+  touchX = 0;
+  touchY = 0;
+  hasTouchMove = false;
   constructor(options) {
     this.options = options;
     this.init();
   }
   init() {
+    if (document.body.clientWidth < 800) {
+      this.options.gridWidth = 350;
+      this.options.gap = 10;
+    }
     document.documentElement.style.setProperty(
       "--cell-gap",
       `${this.options.gap}px`
@@ -47,8 +56,31 @@ class MainSence {
     document.addEventListener("keydown", (e) => {
       this._handleKeydown(e);
     });
+    document.addEventListener("touchstart", (e) => {
+      const { pageX, pageY } = e.touches[0];
+      this.touchX = pageX;
+      this.touchY = pageY;
+      this.hasTouch = true;
+    });
+    document.addEventListener("touchmove", (e) => {
+      if (this.hasTouchMove) return;
+      const { pageX, pageY } = e.touches[0];
+      if (pageX - this.touchX > 50)
+        this._handleKeydown({ code: KEY_MAP.RIGHT });
+      if (pageY - this.touchY > 50) this._handleKeydown({ code: KEY_MAP.DOWN });
+      if (pageX - this.touchX < -50)
+        this._handleKeydown({ code: KEY_MAP.LEFT });
+      if (pageY - this.touchY < -50) this._handleKeydown({ code: KEY_MAP.UP });
+    });
+    document.addEventListener("touchend", () => {
+      this.touchX = 0;
+      this.touchY = 0;
+      this.hasTouch = false;
+      this.hasTouchMove = false;
+    });
   }
   _handleKeydown({ code }) {
+    this.hasTouchMove = true;
     const UpperCode = code.toLocaleUpperCase();
     if (!Object.values(KEY_MAP).includes(UpperCode)) return;
     if (this.flag) return;
@@ -56,20 +88,59 @@ class MainSence {
     this.timer = setTimeout(() => {
       this.flag = false;
     }, 100);
-    this.grid()[UpperCode]();
-    if (!this.hasMove) return;
-    console.log(2);
+    const grid = this.grid();
+    grid[UpperCode]();
+    if (!this.hasMove) {
+      if (!grid.getRemainCellName().length) {
+        alert("game over");
+        grid.clear();
+        this.gameStart();
+      }
+      return;
+    }
+    this.genCell();
     this.hasMove = false;
+    grid.refreshCell();
+    this.renderScore();
   }
-
+  gameStart() {
+    this.score = 0;
+    this.renderScore();
+    new Array(3).fill(0).forEach(() => {
+      this.genCell();
+    });
+  }
   mount(selector) {
     this.senceIns = getDom(selector);
+    const oNewGame = genDom({
+      className: ["new-game-btn"],
+      dataValue: "新游戏",
+    });
+    const oScoerPanel = genDom({
+      className: ["score-panel"],
+      dataValue: "分数",
+      level: 0,
+    });
+    this.append({ name: "scorePanel", ins: oScoerPanel });
+    this.append({ name: "newGameBtn", ins: oNewGame });
+    //
     const cellGrid = new CellGrid({
       name: this.options.gridName,
       sence: this,
     });
+    oNewGame.addEventListener("click", () => {
+      cellGrid.clear();
+      this.gameStart();
+    });
     this.append(cellGrid);
-    this.genCell();
+    this.gameStart();
+  }
+  addScore(score) {
+    this.score += score;
+  }
+  renderScore() {
+    const scorePanel = this.childs.get("scorePanel");
+    scorePanel.ins.dataset.level = this.score;
   }
   append(...childList) {
     childList.forEach((child) => {
@@ -82,11 +153,17 @@ class MainSence {
   }
   genCell() {
     const grid = this.grid();
+    const list = grid.getRemainCellName();
+    if (!list.length) return;
+    const name = randomArr(list);
+    const level = Math.random() < 0.1 ? 1 : 0;
     const cell = new Cell({
       baseValue: this.options.baseValue,
       className: this.options.cellName,
       sence: this,
       grid,
+      name,
+      level,
     });
     grid.append(cell);
   }
@@ -104,6 +181,10 @@ class CellGrid {
     this.sence = sence;
     this.ins = genDom({ className: [name] });
     this.allCellName = this.getAllCellName();
+  }
+  clear() {
+    this.cellMap.clear();
+    this.ins.innerHTML = "";
   }
   append(child) {
     this.cellMap.set(child.getName(), child);
@@ -136,6 +217,18 @@ class CellGrid {
     this.cellMap.set(newName, this.cellMap.get(oldName));
     this.cellMap.delete(oldName);
     this.sence.hasMove = true;
+  }
+  destroyCell(name, ins) {
+    this.cellMap.delete(name);
+    this.sence.hasMove = true;
+    setTimeout(() => {
+      this.ins.removeChild(ins);
+    }, 100);
+  }
+  refreshCell() {
+    this.cellMap.forEach((m) => {
+      m.hasMerge && (m.hasMerge = false);
+    });
   }
   [KEY_MAP.DOWN]() {
     let mount = 0;
@@ -194,26 +287,37 @@ class Cell {
   sence;
   grid;
   name;
-  constructor({ baseValue, className, sence, grid }) {
+  hasMerge = false;
+  constructor({ baseValue, className, sence, grid, name, level = 0 }) {
     this.baseValue = baseValue;
     this.className = className;
     this.sence = sence;
     this.grid = grid;
+    this.name = name;
+    this.level = level;
     this.ins = genDom({
-      className: [className, `${className}-${this.level}`],
+      className: [className],
       dataValue: this.getScore(),
+      level,
     });
-    this.randomPos();
+    this.genPos(name);
   }
   getScore() {
     return this.baseValue * 2 ** this.level;
   }
-  randomPos() {
-    this.name = randomArr(this.grid.getRemainCellName());
-    const [x, y] = this.name.split("-");
+  genPos(name) {
+    const [x, y] = name.split("-");
     this.y = +y;
     this.x = +x;
     this.birth();
+  }
+  upLevel() {
+    ++this.level;
+    const score = this.getScore();
+    this.ins.dataset.value = score;
+    this.ins.dataset.level = this.level;
+    this.hasMerge = true;
+    this.sence.addScore(score);
   }
   birth() {
     const { x, y } = this;
@@ -226,10 +330,14 @@ class Cell {
       }px) scale(1)`;
     });
   }
-  reRender() {
+  reRender(burned = false) {
     this.ins.style.transform = `translate(${this.x * this.sence.offset}px,${
       this.y * this.sence.offset
     }px)`;
+    if (burned) {
+      this.grid.destroyCell(this.name, this.ins);
+      return;
+    }
     const newName = this.getName();
     this.grid.changeChild(this.name, newName);
     this.name = newName;
@@ -237,51 +345,79 @@ class Cell {
   getName() {
     return `${this.x}-${this.y}`;
   }
-  down() {
+  down(isFist = true) {
     const newY = this.y + 1;
     if (newY > this.sence.max) return;
     if (this.grid.hasCellByXY(this.x, newY)) {
-      // 存在
+      const cell = this.grid.getCellByXY(this.x, newY);
+      if (cell.level === this.level) {
+        if (cell.hasMerge) return this.reRender();
+        cell.upLevel();
+        this.y = newY;
+        this.reRender(true);
+        return;
+      }
+      if (isFist) return;
     } else {
-      // 不存在
       this.y = newY;
-      if (this.y < this.sence.max) return this.down();
+      if (this.y < this.sence.max) return this.down(false);
     }
     this.reRender();
   }
-  up() {
+  up(isFist = true) {
     const newY = this.y - 1;
     if (newY < this.sence.min) return;
     if (this.grid.hasCellByXY(this.x, newY)) {
-      // 存在
+      const cell = this.grid.getCellByXY(this.x, newY);
+      if (cell.level === this.level) {
+        if (cell.hasMerge) return this.reRender();
+        cell.upLevel();
+        this.y = newY;
+        this.reRender(true);
+        return;
+      }
+      if (isFist) return;
     } else {
-      // 不存在
       this.y = newY;
-      if (this.y > this.sence.min) return this.up();
+      if (this.y > this.sence.min) return this.up(false);
     }
     this.reRender();
   }
-  right() {
+  right(isFist = true) {
     const newX = this.x + 1;
     if (newX > this.sence.max) return;
     if (this.grid.hasCellByXY(newX, this.y)) {
-      // 存在
+      const cell = this.grid.getCellByXY(newX, this.y);
+      if (cell.level === this.level) {
+        if (cell.hasMerge) return this.reRender();
+        cell.upLevel();
+        this.x = newX;
+        this.reRender(true);
+        return;
+      }
+      if (isFist) return;
     } else {
-      // 不存在
       this.x = newX;
-      if (this.x < this.sence.max) return this.right();
+      if (this.x < this.sence.max) return this.right(false);
     }
     this.reRender();
   }
-  left() {
+  left(isFist = true) {
     const newX = this.x - 1;
     if (newX < this.sence.min) return;
     if (this.grid.hasCellByXY(newX, this.y)) {
-      // 存在
+      const cell = this.grid.getCellByXY(newX, this.y);
+      if (cell.level === this.level) {
+        if (cell.hasMerge) return this.reRender();
+        cell.upLevel();
+        this.x = newX;
+        this.reRender(true);
+        return;
+      }
+      if (isFist) return;
     } else {
-      // 不存在
       this.x = newX;
-      if (this.x > this.sence.min) return this.left();
+      if (this.x > this.sence.min) return this.left(false);
     }
     this.reRender();
   }

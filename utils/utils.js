@@ -9,10 +9,11 @@ const defaultOptions = {
  */
 export const genDom = (options) => {
   const finOptions = { ...defaultOptions, ...options };
-  const { tag, className, dataValue } = finOptions;
+  const { tag, className, dataValue, level } = finOptions;
   const oDom = document.createElement(tag);
   className.length && oDom.classList.add(...className);
   dataValue && (oDom.dataset.value = dataValue);
+  String(level) && (oDom.dataset.level = level);
   return oDom;
 };
 
