@@ -39,3 +39,18 @@ export const random = (min, max) => {
 export const randomArr = (arr) => {
   return arr[Math.floor(Math.random() * arr.length)];
 };
+
+/**
+ * 本地存储
+ */
+export const useStorage = (name, defaultValue) => {
+  return {
+    save(data) {
+      localStorage.setItem(name, JSON.stringify(data));
+    },
+    read() {
+      const item = localStorage.getItem(name);
+      return item ? JSON.parse(item) : defaultValue;
+    },
+  };
+};

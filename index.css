@@ -12,22 +12,20 @@ body {
 }
 body {
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 #app {
   margin: auto;
-  height: 100%;
   width: 750px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  display: grid;
   box-sizing: border-box;
+  justify-items: center;
+  align-items: center;
+  grid-template-columns: 1fr 1fr;
 }
-@media screen and (max-width: 800px) {
-  #app {
-    width: 100%;
-  }
-}
+
 :root {
   --main-bg-color: #ffe;
   --sub-bg-color: #bbada0;
@@ -47,6 +45,7 @@ body {
   border-radius: 2%;
   padding: var(--cell-gap);
   position: relative;
+  grid-column-start: span 2;
 }
 .cell-grid::before {
   content: "";
@@ -143,6 +142,9 @@ body {
   border-radius: 6px;
   margin-bottom: 40px;
   cursor: pointer;
+  width: 200px;
+  grid-column-start: span 2;
+  text-align: center;
 }
 .new-game-btn:hover {
   opacity: 0.9;
@@ -161,7 +163,8 @@ body {
   background-color: #eee4da;
   padding: 10px 20px;
   border-radius: 6px;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
+  width: 80%;
 }
 .score-panel::before {
   content: attr(data-value);
@@ -181,4 +184,16 @@ body {
   bottom: 5px;
   width: 100%;
   text-align: center;
+}
+
+@media screen and (max-width: 800px) {
+  #app {
+    width: 100%;
+  }
+  .tips {
+    bottom: 20px;
+  }
+  .score-panel {
+    grid-column-start: span 2;
+  }
 }
